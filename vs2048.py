@@ -2,7 +2,9 @@
 
 import os
 import subprocess
+import signal
 import sys
+import time
 
 from nbstreamreader import NonBlockingStreamReader as NBSR
 
@@ -30,7 +32,6 @@ def printField(field, out):
         if index > 0 and index % 4 == 3:
             out.write('\n')
     out.flush()
-
 
 
 directions = {
@@ -138,6 +139,7 @@ def main(argv):
                                      shell=False)
     offender_in = offender_proc.stdin
     offender_out = NBSR(offender_proc.stdout)
+    offender_pid = offender_proc.pid
 
     defender_proc = subprocess.Popen(defender,
                                      stdin=subprocess.PIPE,
@@ -145,6 +147,7 @@ def main(argv):
                                      shell=False)
     defender_in = defender_proc.stdin
     defender_out = NBSR(defender_proc.stdout)
+    defender_pid = defender_proc.pid
 
     turn = 0
     score = 0
@@ -185,6 +188,9 @@ def main(argv):
 
     offender_in.write('quit\n')
     defender_in.write('quit\n')
+    offender_proc.wait()
+    defender_proc.wait()
+    time.sleep(0.2)
     print 'Score: %d' % score
 
 

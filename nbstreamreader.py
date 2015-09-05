@@ -1,5 +1,6 @@
-from threading import Thread
-from Queue import Queue, Empty
+import Queue
+import threading
+
 
 class NonBlockingStreamReader:
 
@@ -9,8 +10,9 @@ class NonBlockingStreamReader:
                 Usually a process' stdout or stderr.
         '''
 
+        self._finished = False
         self._s = stream
-        self._q = Queue()
+        self._q = Queue.Queue()
 
         def _populateQueue(stream, queue):
             '''
@@ -22,18 +24,19 @@ class NonBlockingStreamReader:
                 if line:
                     queue.put(line)
                 else:
-                    raise UnexpectedEndOfStream
+                    self._finished = True
+                    break
 
-        self._t = Thread(target = _populateQueue,
-                args = (self._s, self._q))
+        self._t = threading.Thread(target = _populateQueue,
+                                   args = (self._s, self._q))
         self._t.daemon = True
-        self._t.start() #start collecting lines from the stream
+        self._t.start()  # start collecting lines from the stream
 
     def readline(self, timeout = None):
         try:
             return self._q.get(block = timeout is not None,
                                timeout = timeout)
-        except Empty:
+        except Queue.Empty:
             return None
 
 class UnexpectedEndOfStream(Exception): pass
