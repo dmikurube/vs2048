@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import fcntl
 import os
 import subprocess
 import sys
@@ -17,6 +16,14 @@ def initialField():
         ]
 
 
+def placeable(field):
+    fillable = False
+    for number in field:
+        if number == 0:
+            return True
+    return False
+
+
 def printField(field, out):
     for index, number in enumerate(field):
         out.write('%d ' % number)
@@ -25,8 +32,63 @@ def printField(field, out):
     out.flush()
 
 
-def slide(field, direction):
-    return field
+
+directions = {
+    'north': {
+        'start': 0,
+        'delta': 4,
+        'next': 1,
+        },
+    'east': {
+        'start': 4-1,
+        'delta': -1,
+        'next': 4,
+        },
+    'south': {
+        'start': 4 * 4 - 1,
+        'delta': -4,
+        'next': -1,
+        },
+    'west': {
+        'start': 4 * (4 - 1),
+        'delta': 1,
+        'next': -4,
+        },
+    }
+
+
+def slide(oldField, direction):
+    field = list(oldField)
+    moved = False
+    score = 0
+    _next = directions[direction]['start']
+    delta = directions[direction]['delta']
+    for i in range(0, 4):
+        to = _next
+        _from = _next + delta
+        lim = _next + delta * 4
+        _next += directions[direction]['next']
+        while _from != lim:
+            if field[_from] == 0:
+                _from += delta
+            elif field[to] == 0:
+                field[to] = field[_from]
+                field[_from] = 0
+                _from += delta
+                moved = True
+            elif field[to] == field[_from]:
+                field[to] *= 2
+                score += field[to]
+                field[_from] = 0
+                _from += delta
+                to += delta
+                moved = True
+            else:
+                to += delta
+                if _from == to:
+                    _from += delta
+
+    return moved, field, score
 
 
 def place(field, put):
@@ -35,13 +97,16 @@ def place(field, put):
     return field
 
 
-count = 0
 def gameover(field):
-    global count
-    count = count + 1
-    if count > 20:
-        return True
-    return False
+    if slide(field, 'north')[0]:
+        return False
+    if slide(field, 'south')[0]:
+        return False
+    if slide(field, 'east')[0]:
+        return False
+    if slide(field, 'west')[0]:
+        return False
+    return True
 
 
 def main(argv):
@@ -49,12 +114,15 @@ def main(argv):
     offender = []
     defender = []
 
+    verbose = False
     pos = None
     for arg in argv:
         if arg == '-o':
             pos = 'offender'
         elif arg == '-d':
             pos = 'defender'
+        elif arg == '-v':
+            verbose = True
         elif pos == 'offender':
             offender.append(arg)
         elif pos == 'defender':
@@ -78,29 +146,46 @@ def main(argv):
     defender_in = defender_proc.stdin
     defender_out = NBSR(defender_proc.stdout)
 
+    turn = 0
+    score = 0
     while True:
-        printField(field, sys.stdout)
+        turn += 1
+        if verbose:
+            print '=== Turn %d (%d) ===' % (turn, score)
+            printField(field, sys.stdout)
+
+        if gameover(field):
+            break
 
         defender_in.write('game\n')
         printField(field, defender_in)
         direction = defender_out.readline(0.1)
-        print direction,
+        if verbose:
+            print '>> ' + direction,
 
-        field = slide(field, direction)
-        if gameover(field):
+        moved, field, plusscore = slide(field, direction.strip())
+        score += plusscore
+        if not placeable(field):
             break
+
+        if verbose:
+            printField(field, sys.stdout)
 
         offender_in.write('game\n')
         printField(field, offender_in)
         put = offender_out.readline(0.1)
-        print put,
+        if verbose:
+            print '>> ' + put,
 
         field = place(field, put)
         if gameover(field):
             break
+        if verbose:
+            printField(field, sys.stdout)
 
     offender_in.write('quit\n')
     defender_in.write('quit\n')
+    print 'Score: %d' % score
 
 
 if __name__ == '__main__':
