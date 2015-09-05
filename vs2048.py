@@ -13,8 +13,8 @@ def initialField():
     return [
         0, 0, 0, 0,
         0, 0, 0, 0,
-        0, 2, 0, 0,
-        0, 0, 0, 2,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
         ]
 
 
@@ -154,15 +154,24 @@ def main(argv):
     while True:
         turn += 1
         if verbose:
-            print '=== Turn %d (%d) ===' % (turn, score)
+            print '=== Turn %d (Score: %d) ===' % (turn, score)
             printField(field, sys.stdout)
 
+        offender_in.write('game\n')
+        printField(field, offender_in)
+        put = offender_out.readline(0.5)
+        if verbose:
+            print '>> ' + put,
+
+        field = place(field, put)
         if gameover(field):
             break
+        if verbose:
+            printField(field, sys.stdout)
 
         defender_in.write('game\n')
         printField(field, defender_in)
-        direction = defender_out.readline(0.1)
+        direction = defender_out.readline(0.5)
         if verbose:
             print '>> ' + direction,
 
@@ -173,18 +182,8 @@ def main(argv):
 
         if verbose:
             printField(field, sys.stdout)
-
-        offender_in.write('game\n')
-        printField(field, offender_in)
-        put = offender_out.readline(0.1)
-        if verbose:
-            print '>> ' + put,
-
-        field = place(field, put)
         if gameover(field):
             break
-        if verbose:
-            printField(field, sys.stdout)
 
     offender_in.write('quit\n')
     defender_in.write('quit\n')
