@@ -159,7 +159,7 @@ def main(argv):
 
         offender_in.write('game\n')
         printField(field, offender_in)
-        put = offender_out.readline(0.5)
+        put = offender_out.readline(2.0)
         if verbose:
             print '>> ' + put,
 
@@ -171,7 +171,7 @@ def main(argv):
 
         defender_in.write('game\n')
         printField(field, defender_in)
-        direction = defender_out.readline(0.5)
+        direction = defender_out.readline(2.0)
         if verbose:
             print '>> ' + direction,
 
