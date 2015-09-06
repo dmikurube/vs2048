@@ -1,19 +1,20 @@
-package sample;
+package stdiobridge;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-import main.Offence;
+import main.Defence;
+import main.Direction;
 
 
-public class StdIOOffence {
+public class StdIODefence {
     public static void main(String[] args) throws ClassNotFoundException,
                                                   InstantiationException,
                                                   IllegalAccessException,
                                                   IOException {
         if (args.length < 1) { return; }
-        Offence o = Offence.class.cast(Class.forName(args[0]).newInstance());
+        Defence d = Defence.class.cast(Class.forName(args[0]).newInstance());
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
@@ -30,11 +31,21 @@ public class StdIOOffence {
                     field[cur++] = Integer.parseInt(cell);
                 }
             }
-            int position = o.offend(field, 0);
-            System.out.printf("%d %d %d\n",
-                              position % 4,
-                              position % 16 / 4,
-                              (position / 16 + 1) * 2);
+            Direction direction = d.defend(field, 0);
+            switch (direction) {
+            case UP:
+                System.out.println("north");
+                break;
+            case DOWN:
+                System.out.println("south");
+                break;
+            case RIGHT:
+                System.out.println("east");
+                break;
+            case LEFT:
+                System.out.println("west");
+                break;
+            }
             System.out.flush();
         }
     }
