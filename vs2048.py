@@ -94,6 +94,8 @@ def slide(oldField, direction):
 
 def place(field, put):
     (x, y, num) = put.split()
+    if field[int(x) + int(y) * 4] > 0:
+        raise "Illegal place."
     field[int(x) + int(y) * 4] = int(num)
     return field
 
