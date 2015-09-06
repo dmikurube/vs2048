@@ -33,7 +33,7 @@ public class StdIOOffence {
             int position = o.offend(field, 0);
             System.out.printf("%d %d %d\n",
                               position % 4,
-                              position / 2 / 4,
+                              position % 16 / 4,
                               (position / 16 + 1) * 2);
             System.out.flush();
         }
